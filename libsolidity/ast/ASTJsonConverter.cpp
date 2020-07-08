@@ -250,9 +250,14 @@ bool ASTJsonConverter::visit(ImportDirective const& _node)
 	std::vector<pair<string, Json::Value>> attributes = {
 		make_pair("file", _node.path()),
 		make_pair("absolutePath", _node.annotation().absolutePath),
-		make_pair(m_legacy ? "SourceUnit" : "sourceUnit", nodeId(*_node.annotation().sourceUnit)),
 		make_pair("scope", idOrNull(_node.scope()))
 	};
+
+	if (_node.annotation().sourceUnit)
+		attributes.emplace_back(
+			make_pair(m_legacy ? "SourceUnit" : "sourceUnit", nodeId(*_node.annotation().sourceUnit))
+		);
+
 	attributes.emplace_back("unitAlias", _node.name());
 	Json::Value symbolAliases(Json::arrayValue);
 	for (auto const& symbolAlias: _node.symbolAliases())
@@ -736,6 +741,7 @@ bool ASTJsonConverter::visit(FunctionCall const& _node)
 	}
 	else
 		attributes.emplace_back("kind", functionCallKind(nodeKind));
+
 	appendExpressionAttributes(attributes, _node.annotation());
 	setJsonNode(_node, "FunctionCall", std::move(attributes));
 	return false;
