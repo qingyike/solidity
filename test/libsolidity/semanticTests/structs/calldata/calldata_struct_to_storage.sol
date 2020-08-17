@@ -16,6 +16,6 @@ contract C {
 }
 
 // ====
-// compileViaYul: true
+// compileViaYul: also
 // ----
 // f(uint32, (uint256, uint256, bytes2), uint256): 1, 42, 23, "ab", 1 -> 42, 23, "b"

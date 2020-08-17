@@ -2,7 +2,7 @@
 
 Language Features:
  * Allow function definitions outside of contracts, behaving much like internal library functions.
-
+ * Code generator: Implementing copying structs from calldata to storage.
 
 Compiler Features:
  * Standard JSON Interface: Do not run EVM bytecode code generation, if only Yul IR or EWasm output is requested.
