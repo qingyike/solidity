@@ -41,7 +41,7 @@ struct OptimiserSettings
 
 			// should have good "compilability" property here.
 
-			"Feul"                     // Run functional expression inliner
+			"peul"                     // Run functional expression inliner
 			"xarulrul"                 // Prune a bit more in SSA
 			"xarrcL"                   // Turn into SSA again and simplify
 			"gvif"                     // Run full inliner

@@ -223,7 +223,7 @@ map<string, char> const& OptimiserSuite::stepNameToAbbreviationMap()
 		{SSAReverser::name,                   'V'},
 		{SSATransform::name,                  'a'},
 		{StructuralSimplifier::name,          't'},
-		{UnusedFunctionParameterPruner::name, 'F'},
+		{UnusedFunctionParameterPruner::name, 'p'},
 		{UnusedPruner::name,                  'u'},
 		{VarDeclInitializer::name,            'd'},
 	};
