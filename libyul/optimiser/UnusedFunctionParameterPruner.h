@@ -34,11 +34,22 @@ namespace solidity::yul
  *
  * and replace all references to `f` by `f2`.
  *
- * Prerequisites: Disambiguator, FunctionHoister
+ * Prerequisites: Disambiguator, SSATransform, ForLoopConditionIntoBody, ExpressionSplitter,
+ * FunctionHoister.
+ *
+ * SSATransform is not required for correctness. The property "return variable is unused" is
+ * inferred by counting references to return variables. SSATransform helps identifying that the
+ * return parameter is unused in the following case:
+ *
+ *    {
+ *      let x := f()
+ *      x := 1
+ *    }
  *
  * The inliner should be run afterwards to make sure that all references to `f2` are replaced by
  * `f`.
  */
+
 struct UnusedFunctionParameterPruner
 {
 	static constexpr char const* name{"UnusedFunctionParameterPruner"};
