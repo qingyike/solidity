@@ -98,10 +98,10 @@ public:
 
 	void addStateVariable(VariableDeclaration const& _varDecl, u256 _storageOffset, unsigned _byteOffset);
 	bool isStateVariable(VariableDeclaration const& _varDecl) const { return m_stateVariables.count(&_varDecl); }
-	std::pair<u256, unsigned> storageLocationOfVariable(VariableDeclaration const& _varDecl) const
-	{
-		return m_stateVariables.at(&_varDecl);
-	}
+	std::pair<u256, unsigned> storageLocationOfStateVariable(VariableDeclaration const& _varDecl) const;
+
+	std::pair<std::string, std::string> storageLocationOfLocalVariable(VariableDeclaration const& _varDecl) const;
+	std::pair<std::string, std::string> storageLocationOfVariable(VariableDeclaration const& _varDecl) const;
 
 	std::string newYulVariable();
 

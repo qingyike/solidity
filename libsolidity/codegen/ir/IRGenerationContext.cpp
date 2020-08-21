@@ -170,6 +170,42 @@ void IRGenerationContext::internalFunctionAccessed(Expression const& _expression
 	}
 }
 
+pair<u256, unsigned> IRGenerationContext::storageLocationOfStateVariable(VariableDeclaration const& _varDecl) const
+{
+	solAssert(isStateVariable(_varDecl), "");
+	return m_stateVariables.at(&_varDecl);
+}
+
+pair<string, string> IRGenerationContext::storageLocationOfLocalVariable(VariableDeclaration const& _varDecl) const
+{
+	solAssert(isLocalVariable(_varDecl), "");
+	solAssert(
+		_varDecl.type()->dataStoredIn(DataLocation::Storage),
+		"Local variables can have offset/slot only if they are stored in Storage."
+	);
+	IRVariable variable = m_localVariables.at(&_varDecl);
+	// return stack items for slot and offset, or 0 for offset in case where variable has only slot (for example Struct types)
+	return {variable.part("slot").commaSeparatedList(), variable.stackSlots().size() > 1 ? variable.part("offset").commaSeparatedList() : "0"};
+}
+
+pair<string, string> IRGenerationContext::storageLocationOfVariable(VariableDeclaration const& _varDecl) const
+{
+	if (isLocalVariable(_varDecl))
+	{
+		solAssert(
+			_varDecl.type()->dataStoredIn(DataLocation::Storage),
+			"Local variables with storage data location are only supported for slot/offset."
+		);
+		return storageLocationOfLocalVariable(_varDecl);
+	}
+	else
+	{
+		solAssert(isStateVariable(_varDecl), "");
+		auto [slot, offset] = storageLocationOfStateVariable(_varDecl);
+		return {slot.str(), std::to_string(offset)};
+	}
+}
+
 void IRGenerationContext::internalFunctionCalledThroughDispatch(YulArity const& _arity)
 {
 	m_internalDispatchMap.try_emplace(_arity);

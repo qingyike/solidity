@@ -75,18 +75,14 @@ struct CopyTranslate: public yul::ASTCopier
 			{
 				solAssert(reference.isOffset != reference.isSlot, "");
 
-				pair<u256, unsigned> slot_offset = m_context.storageLocationOfVariable(*varDecl);
+				auto [slot, offset] = m_context.storageLocationOfVariable(*varDecl);
 
-				string const value = reference.isSlot ?
-					slot_offset.first.str() :
-					to_string(slot_offset.second);
+				string const value = reference.isSlot ? slot : offset;
 
-				return yul::Literal{
-					_identifier.location,
-					yul::LiteralKind::Number,
-					yul::YulString{value},
-					{}
-				};
+				if (varDecl->isStateVariable() || (!reference.isSlot && varDecl->type()->stackItems().size() == 1))
+					return yul::Literal{_identifier.location,yul::LiteralKind::Number,yul::YulString{value},{}};
+				else
+					return yul::Identifier{_identifier.location, yul::YulString{value}};
 			}
 		}
 		return ASTCopier::operator()(_identifier);
@@ -152,8 +148,8 @@ void IRGeneratorForStatements::initializeStateVar(VariableDeclaration const& _va
 		_varDecl.immutable() ?
 		IRLValue{*_varDecl.annotation().type, IRLValue::Immutable{&_varDecl}} :
 		IRLValue{*_varDecl.annotation().type, IRLValue::Storage{
-			util::toCompactHexWithPrefix(m_context.storageLocationOfVariable(_varDecl).first),
-			m_context.storageLocationOfVariable(_varDecl).second
+			util::toCompactHexWithPrefix(m_context.storageLocationOfStateVariable(_varDecl).first),
+			m_context.storageLocationOfStateVariable(_varDecl).second
 		}},
 		*_varDecl.value()
 	);
@@ -2026,8 +2022,8 @@ void IRGeneratorForStatements::handleVariableReference(
 		setLValue(_referencingExpression, IRLValue{
 			*_variable.annotation().type,
 			IRLValue::Storage{
-				toCompactHexWithPrefix(m_context.storageLocationOfVariable(_variable).first),
-				m_context.storageLocationOfVariable(_variable).second
+				toCompactHexWithPrefix(m_context.storageLocationOfStateVariable(_variable).first),
+				m_context.storageLocationOfStateVariable(_variable).second
 			}
 		});
 	else
