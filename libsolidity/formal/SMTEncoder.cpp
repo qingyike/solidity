@@ -456,6 +456,8 @@ void SMTEncoder::endVisit(TupleExpression const& _tuple)
 
 void SMTEncoder::endVisit(UnaryOperation const& _op)
 {
+	if (TokenTraits::isBitOp(_op.getOperator()))
+		return bitwiseNotOperation(_op);
 	if (_op.annotation().type->category() == Type::Category::RationalNumber)
 		return;
 
@@ -1427,13 +1429,36 @@ void SMTEncoder::bitwiseOperation(BinaryOperation const& _op)
 	optional<smtutil::Expression> result;
 	if (_op.getOperator() == Token::BitAnd)
 		result = bvLeft & bvRight;
-	// TODO implement the other operators
-	else
-		m_errorReporter.warning(
-			1093_error,
-			_op.location(),
-			"Assertion checker does not yet implement this bitwise operator."
-		);
+	else if (_op.getOperator() == Token::BitOr)
+		result = bvLeft | bvRight;
+	else if (_op.getOperator() == Token::BitXor)
+		result = bvLeft ^ bvRight;
+
+	if (result)
+		defineExpr(_op, smtutil::Expression::bv2int(*result, isSigned));
+}
+
+void SMTEncoder::bitwiseNotOperation(UnaryOperation const& _op)
+{
+	solAssert(_op.getOperator() == Token::BitNot, "");
+
+	unsigned bvSize = 256;
+	bool isSigned = false;
+	if (auto const* intType = dynamic_cast<IntegerType const*>(_op.annotation().type))
+	{
+		bvSize = intType->numBits();
+		isSigned = intType->isSigned();
+	}
+	else if (auto const* fixedType = dynamic_cast<FixedPointType const*>(_op.annotation().type))
+	{
+		bvSize = fixedType->numBits();
+		isSigned = fixedType->isSigned();
+	}
+	else if (auto const* fixedBytesType = dynamic_cast<FixedBytesType const*>(_op.annotation().type))
+		bvSize = fixedBytesType->numBytes() * 8;
+
+	auto bvOperand = smtutil::Expression::int2bv(expr(_op.subExpression(), _op.annotation().type), bvSize);
+	optional<smtutil::Expression> result = ~bvOperand;
 
 	if (result)
 		defineExpr(_op, smtutil::Expression::bv2int(*result, isSigned));
